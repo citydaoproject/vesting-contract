@@ -7,7 +7,7 @@ import "./utils/VestingTest.sol";
 import { Errors, VestingSchedule } from "../Vesting.sol";
 
 contract GrantVesting is VestingTest {
-  function proveCanGrantVesting(
+  function testCanGrantVesting(
     address toGrant,
     uint256 amountPerMonth,
     uint256 numberOfMonths
@@ -28,7 +28,7 @@ contract GrantVesting is VestingTest {
     }
   }
 
-  function proveCannotGrantVestingWithInvalidInputs(
+  function testCannotGrantVestingWithInvalidInputs(
     address toGrant,
     uint256 amountPerMonth,
     uint256 numberOfMonths
@@ -46,11 +46,24 @@ contract GrantVesting is VestingTest {
 }
 
 contract ClaimNFTs is VestingTest {
-  function testCanClaimNFTs(uint256 amountPerMonth, uint256 numberOfMonths)
+  function testCanClaimNFTs(uint16 amountPerMonth, uint16 numberOfMonths)
     public
   {
-    alice.grantVesting(address(bob), amountPerMonth, numberOfMonths);
-    bob.claimNFTs();
+    if (amountPerMonth == 0 || numberOfMonths == 0) {
+      return;
+    } else {
+      alice.grantVesting(address(bob), amountPerMonth, numberOfMonths);
+
+      givenMonthsFromNow(numberOfMonths);
+      givenVestingContractHasNFTs(
+        uint256(numberOfMonths) * uint256(amountPerMonth)
+      );
+      bob.claimNFTs();
+      assertEq(
+        token.balanceOf(address(bob), tokenId),
+        uint256(numberOfMonths) * uint256(amountPerMonth)
+      );
+    }
   }
 }
 
