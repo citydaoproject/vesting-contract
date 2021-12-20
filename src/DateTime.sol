@@ -58,7 +58,7 @@ library DateTime {
     uint256 month,
     uint256 day
   ) internal pure returns (uint256 _days) {
-    require(year >= 1970);
+    // require(year >= 1970);
     int256 _year = int256(year);
     int256 _month = int256(month);
     int256 _day = int256(day);

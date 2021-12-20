@@ -17,14 +17,22 @@ contract User is ERC1155Receiver {
 
   function grantVesting(
     address toGrant,
-    uint256 amountPerMonth,
-    uint256 numberOfMonths
+    uint16 numberOfMonths,
+    uint32 amountPerMonth
   ) public {
-    vesting.grantVesting(toGrant, amountPerMonth, numberOfMonths);
+    vesting.grantVesting(toGrant, numberOfMonths, amountPerMonth);
   }
 
-  function claimNFTs() public {
-    vesting.claimNFTs();
+  function revokeVesting(address toRevoke) public {
+    vesting.revokeVesting(toRevoke);
+  }
+
+  function withdrawTokens(uint256 amount) public {
+    vesting.withdrawTokens(amount);
+  }
+
+  function claimTokens() public returns (uint256) {
+    return vesting.claimTokens();
   }
 
   function onERC1155Received(
@@ -33,7 +41,7 @@ contract User is ERC1155Receiver {
     uint256 id,
     uint256 value,
     bytes calldata data
-  ) external override returns (bytes4) {
+  ) external pure override returns (bytes4) {
     return
       bytes4(
         keccak256("onERC1155Received(address,address,uint256,uint256,bytes)")
@@ -46,7 +54,7 @@ contract User is ERC1155Receiver {
     uint256[] calldata ids,
     uint256[] calldata values,
     bytes calldata data
-  ) external override returns (bytes4) {
+  ) external pure override returns (bytes4) {
     return
       bytes4(
         keccak256("onERC1155Received(address,address,uint256,uint256,bytes)")
@@ -91,15 +99,11 @@ abstract contract VestingTest is DSTest {
     vestingContract.transferOwnership(address(alice));
   }
 
-  function givenMonthsFromNow(uint16 _months) public {
-    (uint256 year, uint256 month, uint256 day) = DateTime.timestampToDate(
-      block.timestamp
-    );
-    uint256 newTime = DateTime.timestampFromDate(year, month + _months, day);
-    hevm.warp(newTime);
-  }
-
   function givenVestingContractHasNFTs(uint256 _amount) public {
     token.mint(address(vestingContract), _amount, "");
+  }
+
+  function givenMonthsFromNow(uint32 _months) public {
+    hevm.warp(DateTime.addMonths(block.timestamp, _months));
   }
 }

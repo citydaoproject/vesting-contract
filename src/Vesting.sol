@@ -7,15 +7,18 @@ import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Receiver.sol";
 import "./DateTime.sol";
 
 library Errors {
-  string internal constant InvalidBlockNumber =
-    "invalid block number, please wait";
+  string internal constant InvalidTimestamp = "invalid timestamp";
   string internal constant InvalidInput = "invalid input provided";
+  string internal constant NoVestingSchedule =
+    "sender has not been registered for a vesting schedule";
+  string internal constant InsufficientTokenBalance =
+    "contract does not have enough tokens to distribute";
 }
 
 struct VestingSchedule {
   uint256 lastClaim;
-  uint256 monthsRemaining;
-  uint256 nftsPerMonth;
+  uint16 monthsRemaining;
+  uint32 tokensPerMonth;
 }
 
 contract Vesting is Ownable, ERC1155Receiver {
@@ -44,7 +47,7 @@ contract Vesting is Ownable, ERC1155Receiver {
     uint256 id,
     uint256 value,
     bytes calldata data
-  ) external override returns (bytes4) {
+  ) external pure override returns (bytes4) {
     return
       bytes4(
         keccak256("onERC1155Received(address,address,uint256,uint256,bytes)")
@@ -57,59 +60,94 @@ contract Vesting is Ownable, ERC1155Receiver {
     uint256[] calldata ids,
     uint256[] calldata values,
     bytes calldata data
-  ) external override returns (bytes4) {
+  ) external pure override returns (bytes4) {
     return
       bytes4(
         keccak256("onERC1155Received(address,address,uint256,uint256,bytes)")
       );
   }
 
-  function claimNFTs() external returns (uint256 nftsToClaim) {
+  function claimTokens() external returns (uint256 tokensToClaim) {
     VestingSchedule storage userVestingSchedule = _vestingSchedules[msg.sender];
-    nftsToClaim =
-      userVestingSchedule.nftsPerMonth *
-      userVestingSchedule.monthsRemaining;
+
+    uint256 monthsPassed = DateTime.diffMonths(
+      _vestingSchedules[msg.sender].lastClaim,
+      block.timestamp
+    );
+
+    if (monthsPassed == 0) {
+      return 0;
+    } else if (monthsPassed > userVestingSchedule.monthsRemaining) {
+      tokensToClaim =
+        uint256(userVestingSchedule.tokensPerMonth) *
+        uint256(userVestingSchedule.monthsRemaining);
+    } else {
+      tokensToClaim =
+        uint256(userVestingSchedule.tokensPerMonth) *
+        monthsPassed;
+    }
 
     IERC1155 token = IERC1155(_tokenAddress);
+    require(
+      token.balanceOf(address(this), _tokenId) >= tokensToClaim,
+      Errors.InsufficientTokenBalance
+    );
+
+    _vestingSchedules[msg.sender].lastClaim = block.timestamp;
+
     token.safeTransferFrom(
       address(this),
       msg.sender,
       _tokenId,
-      nftsToClaim,
+      tokensToClaim,
       "Claiming vested NFTs"
     );
   }
 
-  // function withdrawNFTs(uint256 count)
+  function withdrawTokens(uint256 count) external onlyOwner {
+    IERC1155 token = IERC1155(_tokenAddress);
+    require(
+      token.balanceOf(address(this), _tokenId) >= count,
+      Errors.InsufficientTokenBalance
+    );
 
-  // function revokeVesting(address toRevoke)
+    token.safeTransferFrom(
+      address(this),
+      msg.sender,
+      _tokenId,
+      count,
+      "Withdrawing tokens"
+    );
+  }
+
+  function revokeVesting(address toRevoke) external onlyOwner {
+    _vestingSchedules[toRevoke].tokensPerMonth = 0;
+    _vestingSchedules[toRevoke].monthsRemaining = 0;
+  }
 
   function getVestingSchedule(address addr)
     external
     view
     returns (
       uint256 timestamp,
-      uint256 monthsRemaining,
-      uint256 nftsPerMonth
+      uint16 monthsRemaining,
+      uint32 tokensPerMonth
     )
   {
     VestingSchedule storage _vestingSchedule = _vestingSchedules[addr];
     return (
       _vestingSchedule.lastClaim,
       _vestingSchedule.monthsRemaining,
-      _vestingSchedule.nftsPerMonth
+      _vestingSchedule.tokensPerMonth
     );
   }
 
   function grantVesting(
     address _toGrant,
-    uint256 _amountPerMonth,
-    uint256 _numberOfMonths
+    uint16 _numberOfMonths,
+    uint32 _amountPerMonth
   ) external onlyOwner {
-    require(
-      _toGrant != address(0) && _amountPerMonth > 0 && _numberOfMonths > 0,
-      Errors.InvalidInput
-    );
+    require(_toGrant != address(0), Errors.InvalidInput);
     _vestingSchedules[_toGrant] = VestingSchedule(
       block.timestamp,
       _numberOfMonths,
