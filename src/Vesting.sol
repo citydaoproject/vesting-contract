@@ -4,6 +4,7 @@ pragma solidity ^0.8.6;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Receiver.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
 import "./DateTime.sol";
 
 library Errors {
@@ -77,14 +78,10 @@ contract Vesting is Ownable, ERC1155Receiver {
 
     if (monthsPassed == 0) {
       return 0;
-    } else if (monthsPassed > userVestingSchedule.monthsRemaining) {
-      tokensToClaim =
-        uint256(userVestingSchedule.tokensPerMonth) *
-        uint256(userVestingSchedule.monthsRemaining);
     } else {
       tokensToClaim =
         uint256(userVestingSchedule.tokensPerMonth) *
-        monthsPassed;
+        Math.min(userVestingSchedule.monthsRemaining, monthsPassed);
     }
 
     IERC1155 token = IERC1155(_tokenAddress);

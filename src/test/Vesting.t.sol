@@ -191,11 +191,11 @@ contract WithdrawTokens is VestingTest {
     assertEq(token.balanceOf(address(alice), tokenId), numberOfTokens);
   }
 
-  function testCannotWithdrawMoreTokensThanAvailable(uint256 numberOfTokens)
+  function testCannotWithdrawMoreTokensThanAvailable(uint128 numberOfTokens)
     public
   {
     givenVestingContractHasNFTs(numberOfTokens);
-    try alice.withdrawTokens(numberOfTokens + 10) {
+    try alice.withdrawTokens(uint256(numberOfTokens) + 10) {
       fail();
     } catch Error(string memory error) {
       assertEq(error, Errors.InsufficientTokenBalance);
