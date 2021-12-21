@@ -1,12 +1,10 @@
 {
-  "name": "dapptools-template",
+  "name": "citydao-vesting-contract",
   "author": "Georgios Konstantopoulos",
   "license": "Unlicense",
   "version": "1.0.0",
-  "description": "A template for building dapptools projects",
-  "files": [
-    "*.sol"
-  ],
+  "description": "a smart contract to award tokens to contributors over a set period of time",
+  "files": ["*.sol"],
   "devDependencies": {
     "copyfiles": "^2.4.1",
     "prettier": "^2.4.1",
