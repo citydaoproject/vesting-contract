@@ -91,6 +91,7 @@ contract Vesting is Ownable, ERC1155Receiver {
     );
 
     _vestingSchedules[msg.sender].lastClaim = block.timestamp;
+    _vestingSchedules[msg.sender].monthsRemaining = _vestingSchedules[msg.sender].monthsRemaining - Math.min(userVestingSchedule.monthsRemaining, monthsPassed);
 
     token.safeTransferFrom(
       address(this),
