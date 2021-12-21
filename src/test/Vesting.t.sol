@@ -197,6 +197,73 @@ contract ClaimTokens is VestingTest {
             assertEq(error, Errors.InsufficientTokenBalance);
         }
     }
+
+    function testCanClaimMultipleTimes(
+        uint32 amountPerMonth,
+        uint16 numberOfMonths,
+        uint16 claimPeriod
+    ) public {
+        alice.grantVestingTokens(address(bob), numberOfMonths, amountPerMonth);
+        givenVestingContractHasNFTs(
+            uint256(numberOfMonths) * uint256(amountPerMonth)
+        );
+
+        if (
+            amountPerMonth == 0 ||
+            claimPeriod == 0 ||
+            numberOfMonths == 0 ||
+            claimPeriod < numberOfMonths
+        ) {
+            // tested in testCanClaimTokensGivenTimePassed, will return 0
+            // if claimPeriod == 0 then the test is tested in testClaimTokensGivenNoTimePassed
+            // if claimPeriod > numberOfMonths then the test is invalid.
+            return;
+        }
+
+        uint256 i = 0;
+        for (i = claimPeriod; i < numberOfMonths; i += claimPeriod) {
+            givenMonthsFromNow(claimPeriod);
+            uint256 nftsClaimed = bob.claimTokens();
+            assertEq(nftsClaimed, claimPeriod * amountPerMonth);
+            assertEq(
+                token.balanceOf(address(bob), tokenId),
+                i * amountPerMonth
+            );
+        }
+    }
+
+    function testMonthsRemainingIsUpdatedAfterClaiming(
+        uint16 numberOfMonths,
+        uint32 amountPerMonth
+    ) public {
+        alice.grantVestingTokens(address(bob), numberOfMonths, amountPerMonth);
+        givenVestingContractHasNFTs(
+            uint256(numberOfMonths) * uint256(amountPerMonth)
+        );
+
+        if (amountPerMonth == 0 || numberOfMonths <= 1) {
+            // tested in testCanClaimTokensGivenTimePassed, will return 0
+            // since we need to make two claims, we need at least 2 months.
+            return;
+        }
+
+        uint256 nftsClaimed = 0;
+
+        // make the first claim after a month
+        givenMonthsFromNow(1);
+        nftsClaimed = bob.claimTokens();
+        assertEq(nftsClaimed, amountPerMonth);
+        assertEq(token.balanceOf(address(bob), tokenId), amountPerMonth);
+
+        // after waiting past the last month, we should still not be able to take more tokens.
+        givenMonthsFromNow(numberOfMonths);
+        nftsClaimed = bob.claimTokens();
+        // assertEq(nftsClaimed, amountPerMonth * (numberOfMonths - 1));
+        // assertEq(
+        //     token.balanceOf(address(bob), tokenId),
+        //     amountPerMonth * numberOfMonths
+        // );
+    }
 }
 
 contract WithdrawTokens is VestingTest {
