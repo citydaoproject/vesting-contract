@@ -76,12 +76,15 @@ contract Vesting is Ownable, ERC1155Receiver {
       block.timestamp
     );
 
-    if (monthsPassed == 0) {
+    // use uint16 because we can not claim more than the months remaining. avoid overflow later when assumptions are more complex.
+    // ecplicit conversion here should be fine, since we already min() with a upscaled uint16 (monthsRemaining), so the range should fall within a single uint16
+    uint16 monthsClaimed = uint16(Math.min(userVestingSchedule.monthsRemaining, monthsPassed));
+
+    if (monthsClaimed == 0) {
       return 0;
     } else {
       tokensToClaim =
-        uint256(userVestingSchedule.tokensPerMonth) *
-        Math.min(userVestingSchedule.monthsRemaining, monthsPassed);
+        uint256(userVestingSchedule.tokensPerMonth) * monthsClaimed;
     }
 
     IERC1155 token = IERC1155(_tokenAddress);
@@ -91,7 +94,7 @@ contract Vesting is Ownable, ERC1155Receiver {
     );
 
     _vestingSchedules[msg.sender].lastClaim = block.timestamp;
-    _vestingSchedules[msg.sender].monthsRemaining = _vestingSchedules[msg.sender].monthsRemaining - Math.min(userVestingSchedule.monthsRemaining, monthsPassed);
+    _vestingSchedules[msg.sender].monthsRemaining = _vestingSchedules[msg.sender].monthsRemaining - monthsClaimed;
 
     token.safeTransferFrom(
       address(this),

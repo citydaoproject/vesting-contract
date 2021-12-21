@@ -258,11 +258,14 @@ contract ClaimTokens is VestingTest {
         // after waiting past the last month, we should still not be able to take more tokens.
         givenMonthsFromNow(numberOfMonths);
         nftsClaimed = bob.claimTokens();
-        // assertEq(nftsClaimed, amountPerMonth * (numberOfMonths - 1));
-        // assertEq(
-        //     token.balanceOf(address(bob), tokenId),
-        //     amountPerMonth * numberOfMonths
-        // );
+        assertEq(
+            nftsClaimed,
+            uint256(amountPerMonth) * uint256(numberOfMonths - 1)
+        );
+        assertEq(
+            token.balanceOf(address(bob), tokenId),
+            uint256(amountPerMonth) * uint256(numberOfMonths)
+        );
     }
 }
 
