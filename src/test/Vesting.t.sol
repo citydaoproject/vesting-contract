@@ -6,8 +6,8 @@ import "ds-test/test.sol";
 import "./utils/VestingTest.sol";
 import { Errors, VestingSchedule } from "../Vesting.sol";
 
-contract GrantVesting is VestingTest {
-  function testCanGrantVesting(
+contract GrantVestingTokens is VestingTest {
+  function testCanGrantVestingTokens(
     address toGrant,
     uint16 numberOfMonths,
     uint32 amountPerMonth
@@ -15,7 +15,7 @@ contract GrantVesting is VestingTest {
     if (toGrant == address(0x0)) {
       return;
     } else {
-      alice.grantVesting(toGrant, numberOfMonths, amountPerMonth);
+      alice.grantVestingTokens(toGrant, numberOfMonths, amountPerMonth);
 
       (
         uint256 lastClaim,
@@ -28,13 +28,13 @@ contract GrantVesting is VestingTest {
     }
   }
 
-  function testCannotGrantVestingWithInvalidInputs(
+  function testCannotGrantVestingTokensWithInvalidInputs(
     address toGrant,
     uint16 numberOfMonths,
     uint32 amountPerMonth
   ) public {
     if (toGrant == address(0x0)) {
-      try alice.grantVesting(toGrant, numberOfMonths, amountPerMonth) {
+      try alice.grantVestingTokens(toGrant, numberOfMonths, amountPerMonth) {
         fail();
       } catch Error(string memory error) {
         assertEq(error, Errors.InvalidInput);
@@ -52,8 +52,8 @@ contract GrantVesting is VestingTest {
     if (toGrant == address(0x0)) {
       return;
     } else {
-      alice.grantVesting(toGrant, 1, 1);
-      alice.grantVesting(toGrant, numberOfMonths, amountPerMonth);
+      alice.grantVestingTokens(toGrant, 1, 1);
+      alice.grantVestingTokens(toGrant, numberOfMonths, amountPerMonth);
 
       (
         uint256 lastClaim,
@@ -73,8 +73,8 @@ contract GrantVesting is VestingTest {
     if (toGrant == address(0x0) || amountPerMonth == 0 || numberOfMonths == 0) {
       return;
     } else {
-      alice.grantVesting(toGrant, numberOfMonths, amountPerMonth);
-      alice.revokeVesting(toGrant);
+      alice.grantVestingTokens(toGrant, numberOfMonths, amountPerMonth);
+      alice.revokeVestingTokens(toGrant);
 
       (
         uint256 lastClaim,
@@ -92,7 +92,7 @@ contract ClaimTokens is VestingTest {
     uint16 numberOfMonths,
     uint32 amountPerMonth
   ) public {
-    alice.grantVesting(address(bob), numberOfMonths, amountPerMonth);
+    alice.grantVestingTokens(address(bob), numberOfMonths, amountPerMonth);
 
     givenMonthsFromNow(numberOfMonths);
     givenVestingContractHasNFTs(
@@ -111,7 +111,7 @@ contract ClaimTokens is VestingTest {
     uint16 monthsExcess,
     uint32 amountPerMonth
   ) public {
-    alice.grantVesting(address(bob), numberOfMonths, amountPerMonth);
+    alice.grantVestingTokens(address(bob), numberOfMonths, amountPerMonth);
 
     uint32 monthsPassed = uint32(numberOfMonths) + monthsExcess;
     givenMonthsFromNow(monthsPassed);
@@ -131,7 +131,7 @@ contract ClaimTokens is VestingTest {
     uint16 monthsLess,
     uint32 amountPerMonth
   ) public {
-    alice.grantVesting(address(bob), numberOfMonths, amountPerMonth);
+    alice.grantVestingTokens(address(bob), numberOfMonths, amountPerMonth);
 
     if (monthsLess > numberOfMonths) {
       monthsLess = numberOfMonths;
@@ -154,7 +154,7 @@ contract ClaimTokens is VestingTest {
     uint16 amountPerMonth,
     uint32 numberOfMonths
   ) public {
-    alice.grantVesting(address(bob), amountPerMonth, numberOfMonths);
+    alice.grantVestingTokens(address(bob), amountPerMonth, numberOfMonths);
 
     givenVestingContractHasNFTs(
       uint256(numberOfMonths) * uint256(amountPerMonth)
@@ -168,7 +168,7 @@ contract ClaimTokens is VestingTest {
     uint16 numberOfMonths,
     uint32 amountPerMonth
   ) public {
-    alice.grantVesting(address(bob), numberOfMonths, amountPerMonth);
+    alice.grantVestingTokens(address(bob), numberOfMonths, amountPerMonth);
 
     givenMonthsFromNow(numberOfMonths);
     if (amountPerMonth == 0 || numberOfMonths == 0) {

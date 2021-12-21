@@ -15,16 +15,16 @@ contract User is ERC1155Receiver {
     vesting = Vesting(_vesting);
   }
 
-  function grantVesting(
+  function grantVestingTokens(
     address toGrant,
     uint16 numberOfMonths,
     uint32 amountPerMonth
   ) public {
-    vesting.grantVesting(toGrant, numberOfMonths, amountPerMonth);
+    vesting.grantVestingTokens(toGrant, numberOfMonths, amountPerMonth);
   }
 
-  function revokeVesting(address toRevoke) public {
-    vesting.revokeVesting(toRevoke);
+  function revokeVestingTokens(address toRevoke) public {
+    vesting.revokeVestingTokens(toRevoke);
   }
 
   function withdrawTokens(uint256 amount) public {

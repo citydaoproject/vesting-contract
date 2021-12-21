@@ -120,7 +120,7 @@ contract Vesting is Ownable, ERC1155Receiver {
     );
   }
 
-  function revokeVesting(address toRevoke) external onlyOwner {
+  function revokeVestingTokens(address toRevoke) external onlyOwner {
     _vestingSchedules[toRevoke].tokensPerMonth = 0;
     _vestingSchedules[toRevoke].monthsRemaining = 0;
   }
@@ -142,7 +142,7 @@ contract Vesting is Ownable, ERC1155Receiver {
     );
   }
 
-  function grantVesting(
+  function grantVestingTokens(
     address _toGrant,
     uint16 _numberOfMonths,
     uint32 _amountPerMonth
