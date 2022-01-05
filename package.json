@@ -4,7 +4,9 @@
   "license": "Unlicense",
   "version": "1.0.0",
   "description": "a smart contract to award tokens to contributors over a set period of time",
-  "files": ["*.sol"],
+  "files": [
+    "*.sol"
+  ],
   "devDependencies": {
     "copyfiles": "^2.4.1",
     "prettier": "^2.4.1",

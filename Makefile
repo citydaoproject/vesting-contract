@@ -35,7 +35,7 @@ deploy-rinkeby: export ETH_RPC_URL = $(call network,rinkeby)
 deploy-rinkeby: check-api-key deploy
 
 # verify on Etherscan
-verify:; ETH_RPC_URL=$(call network,$(network_name)) dapp verify-contract src/Greeter.sol:Greeter $(contract_address)
+verify:; ETH_RPC_URL=$(call network,$(network_name)) dapp verify-contract src/Vesting.sol:Vesting $(contract_address)
 
 check-api-key:
 ifndef ALCHEMY_API_KEY
